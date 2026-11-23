@@ -1,0 +1,69 @@
+name: CI - Validação do Pull Request
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  verificacoes:
+    name: Verificações de qualidade
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Verificar se index.html existe na raiz
+        run: |
+          if [ ! -f index.html ]; then
+            echo "::error::index.html não encontrado na raiz do projeto"
+            exit 1
+          fi
+
+      - name: Bloquear arquivos maiores que 500KB
+        run: |
+          grandes=$(find . -type f -size +500k -not -path "./.git/*" -not -path "./node_modules/*")
+          if [ -n "$grandes" ]; then
+            echo "::error::Arquivos acima de 500KB:"
+            echo "$grandes"
+            exit 1
+          fi
+
+      - name: Varredura de termos proibidos
+        run: |
+          erro=0
+          if grep -rnE "\b(TODO|FIXME)\b" --include="*.html" --include="*.css" --include="*.js" --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.github .; then
+            erro=1
+          fi
+          if grep -rniE "senha|password" --include="*.html" --include="*.css" --include="*.js" --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.github .; then
+            erro=1
+          fi
+          if [ $erro -eq 1 ]; then
+            echo "::error::Termos proibidos encontrados"
+            exit 1
+          fi
+
+      - name: Verificar links e imagens
+        run: bash scripts/check-links.sh
+
+  lint:
+    name: Linter (Node ${{ matrix.node-version }})
+    needs: verificacoes
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18, 20]
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Preparar Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Executar o Linter
+        run: npm run lint

@@ -1,0 +1,6 @@
+body { font-family: Arial, sans-serif; margin: 0; background: #f4f4f4; color: #222; }
+header { background: #1f3a93; color: #fff; text-align: center; padding: 2rem; }
+header img { border-radius: 50%; }
+main { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+section { background: #fff; padding: 1rem 1.5rem; margin-bottom: 1rem; border-radius: 8px; }
+a { color: #1f3a93; }
