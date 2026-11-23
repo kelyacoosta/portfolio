@@ -21,7 +21,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Baixar o código
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Configurar Pages
         uses: actions/configure-pages@v5
@@ -32,8 +32,11 @@ jobs:
           cp index.html style.css _site/
           cp -r images _site/
 
+      - name: Listar arquivos publicados
+        run: ls -R _site
+
       - name: Enviar artefato
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: _site
 
